@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<featJAR:FeatureModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:featJAR="https://github.com/FeatureIDE/FeatJAR" id="1" name="VehicleProductLine">
+  <attributes key="domain" value="automotive"/>
+  <attributes key="version" value="1.0"/>
+  <roots id="2" name="Vehicle">
+    <attributes key="level" value="root"/>
+    <attributes key="type" value="CONCRETE"/>
+    <groupNodeList id="10" name="MainGroup">
+      <attributes key="kind" value="AND"/>
+      <featureList id="3" name="Engine">
+        <attributes key="category" value="powertrain"/>
+        <attributes key="type" value="ABSTRACT"/>
+        <groupNodeList id="11" name="EngineChoice">
+          <attributes key="kind" value="XOR"/>
+          <featureList id="4" name="GasolineEngine">
+            <attributes key="fuel" value="gasoline"/>
+            <attributes key="type" value="CONCRETE"/>
+            <cardinality upperBound="1"/>
+          </featureList>
+          <featureList id="5" name="ElectricEngine">
+            <attributes key="fuel" value="electric"/>
+            <attributes key="type" value="CONCRETE"/>
+            <cardinality upperBound="1"/>
+          </featureList>
+          <cardinality lowerBound="1" upperBound="1"/>
+        </groupNodeList>
+        <cardinality lowerBound="1" upperBound="1"/>
+      </featureList>
+      <featureList id="6" name="Comfort">
+        <attributes key="category" value="interior"/>
+        <attributes key="type" value="ABSTRACT"/>
+        <groupNodeList id="12" name="ComfortGroup">
+          <attributes key="kind" value="TEst"/>
+          <featureList id="7" name="AirConditioning">
+            <attributes key="cost" value="medium"/>
+            <attributes key="type" value="CONCRETE"/>
+            <cardinality lowerBound="1" upperBound="1"/>
+          </featureList>
+          <featureList id="8" name="SeatHeating">
+            <attributes key="cost" value="high"/>
+            <attributes key="type" value="NONE"/>
+            <groupNodeList id="0fb8e1c1867a4a7798e49b2f354141ad" name="">
+              <featureList id="540210e57a6f412f8bf691a95609e7c6" name="New Feature-1">
+                <attributes key="type" value="CONCRETE"/>
+                <cardinality upperBound="1"/>
+              </featureList>
+              <featureList id="60f5364d3e0e435298d6077dc9d738a6" name="New Feature-2">
+                <attributes key="type" value="CONCRETE"/>
+                <cardinality lowerBound="1" upperBound="1"/>
+              </featureList>
+              <featureList id="155ade5ba36d47e891a746273fe42754" name="New Feature-3">
+                <attributes key="type" value="CONCRETE"/>
+                <cardinality upperBound="1"/>
+              </featureList>
+              <featureList id="97dc51e758ea4ae29b98ee75185eef5b" name="New Feature-4">
+                <attributes key="type" value="CONCRETE"/>
+                <cardinality lowerBound="1" upperBound="1"/>
+              </featureList>
+              <featureList id="4601c7041770498c9530f7523116edc6" name="New Feature-5">
+                <attributes key="type" value="CONCRETE"/>
+                <cardinality upperBound="1"/>
+              </featureList>
+              <featureList id="9cea955c178c4c3f94747d6b20269ea6" name="New Feature-6">
+                <attributes key="type" value="CONCRETE"/>
+                <groupNodeList id="c25d26c8942e43d1a5eeda39552cbed1" name="">
+                  <featureList id="8dd2ee15c39946519300b7c194460ab4" name="TESTWATCH">
+                    <attributes key="type" value="CONCRETE"/>
+                    <attributes key="hidden" value=""/>
+                    <cardinality upperBound="1"/>
+                  </featureList>
+                  <featureList id="d0733c8d8a874864abd1aac3b1a35760" name="MULTIPLE_TEST">
+                    <attributes key="type" value="CONCRETE"/>
+                    <cardinality lowerBound="1" upperBound="1"/>
+                  </featureList>
+                  <featureList id="685800696295485e8ed6f9b858775c2f" name="New Feature-3">
+                    <attributes key="type" value="CONCRETE"/>
+                    <cardinality upperBound="1"/>
+                  </featureList>
+                  <featureList id="43dd971e3b3b410ebbd9a269cd445c00" name="New Feature-4">
+                    <attributes key="type" value="CONCRETE"/>
+                    <cardinality lowerBound="1" upperBound="1"/>
+                  </featureList>
+                  <cardinality lowerBound="1"/>
+                </groupNodeList>
+                <groupNodeList id="8cb9302e3c6e43b8af2d44563a94caad" name="">
+                  <cardinality lowerBound="1" upperBound="1"/>
+                </groupNodeList>
+                <cardinality lowerBound="1" upperBound="1"/>
+              </featureList>
+              <cardinality lowerBound="1" upperBound="1"/>
+            </groupNodeList>
+            <cardinality upperBound="1"/>
+          </featureList>
+          <cardinality/>
+        </groupNodeList>
+        <cardinality upperBound="1"/>
+      </featureList>
+      <cardinality lowerBound="1"/>
+    </groupNodeList>
+    <cardinality lowerBound="1" upperBound="1"/>
+  </roots>
+  <constraints id="20" name="ElectricRequiresComfort">
+    <attributes key="expr" value="ElectricEngine -> Comfort"/>
+  </constraints>
+  <constraints id="21" name="GasolineExcludesSeatHeating">
+    <attributes key="expr" value="GasolineEngine -> not SeatHeating"/>
+  </constraints>
+</featJAR:FeatureModel>

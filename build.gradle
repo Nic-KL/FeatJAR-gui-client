@@ -1,0 +1,36 @@
+plugins {
+    id "com.github.node-gradle.node" version "7.1.0"
+    id 'base'
+}
+
+node {
+    // Whether to download and install a specific Node.js version or not
+    // If false, it will use the globally installed Node.js
+    // If true, it will download node using above parameters
+    // Note that npm is bundled with Node.js
+    download = true
+    // Version of node to download and install (only used if download is true)
+    // It will be unpacked in the workDir
+    version = '20.20.2'
+    // Version of Yarn to use
+    // Any Yarn task first installs Yarn in the yarnWorkDir
+    // It uses the specified version if defined and the latest version otherwise (by default)
+    yarnVersion = '1.22.22'
+}
+
+tasks.register('yarnInstall', com.github.gradle.node.yarn.task.YarnTask) {
+    workingDir = project.projectDir
+    args = ['install']
+}
+
+tasks.register('yarnBuild', com.github.gradle.node.yarn.task.YarnTask) {
+    dependsOn 'yarnInstall'
+    workingDir = project.projectDir
+    args = ['build']
+}
+
+tasks.named('build') {
+    dependsOn 'yarnInstall'
+    dependsOn 'yarnBuild'
+}
+

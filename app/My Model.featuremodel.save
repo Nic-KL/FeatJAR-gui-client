@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<featJAR:FeatureModel
+  xmi:version="2.0"
+  xmlns:xmi="http://www.omg.org/XMI"
+  xmlns:featJAR="https://github.com/FeatureIDE/FeatJAR"
+  id="1"
+  name="VehicleProductLine">
+
+  <attributes key="domain" value="automotive"/>
+  <attributes key="version" value="1.0"/>
+
+  <roots id="2" name="Vehicle" featureType="CONCRETE">
+    <attributes key="level" value="root"/>
+    <cardinality lowerBound="1" upperBound="1"/>
+
+    <groupNodeList id="10" name="MainGroup">
+      <attributes key="kind" value="AND"/>
+      <cardinality lowerBound="1" upperBound="-1"/>
+
+      <featureList id="3" name="Engine" featureType="ABSTRACT">
+        <attributes key="category" value="powertrain"/>
+        <cardinality lowerBound="1" upperBound="1"/>
+
+        <groupNodeList id="11" name="EngineChoice">
+          <attributes key="kind" value="XOR"/>
+          <cardinality lowerBound="1" upperBound="1"/>
+
+          <featureList id="4" name="GasolineEngine" featureType="CONCRETE">
+            <attributes key="fuel" value="gasoline"/>
+            <cardinality lowerBound="0" upperBound="1"/>
+          </featureList>
+
+          <featureList id="5" name="ElectricEngine" featureType="CONCRETE">
+            <attributes key="fuel" value="electric"/>
+            <cardinality lowerBound="0" upperBound="1"/>
+          </featureList>
+        </groupNodeList>
+      </featureList>
+
+      <featureList id="6" name="Comfort" featureType="ABSTRACT">
+        <attributes key="category" value="interior"/>
+        <cardinality lowerBound="0" upperBound="1"/>
+
+        <groupNodeList id="12" name="ComfortGroup">
+          <attributes key="kind" value="TEst"/>
+          <cardinality lowerBound="0" upperBound="-1"/>
+
+          <featureList id="7" name="AirConditioning" featureType="CONCRETE">
+            <attributes key="cost" value="medium"/>
+            <cardinality lowerBound="1" upperBound="1"/>
+          </featureList>
+
+          <featureList id="8" name="SeatHeating" featureType="HIDDEN">
+            <attributes key="cost" value="high"/>
+            <cardinality lowerBound="0" upperBound="1"/>
+          </featureList>
+        </groupNodeList>
+      </featureList>
+    </groupNodeList>
+  </roots>
+
+  <constraints id="20" name="ElectricRequiresComfort">
+    <attributes key="expr" value="ElectricEngine -&gt; Comfort"/>
+  </constraints>
+
+  <constraints id="21" name="GasolineExcludesSeatHeating">
+    <attributes key="expr" value="GasolineEngine -&gt; not SeatHeating"/>
+  </constraints>
+
+</featJAR:FeatureModel>

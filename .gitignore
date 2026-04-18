@@ -1,0 +1,12 @@
+
+# Yarn & Client
+node_modules/
+lib/
+app/bundle.js
+app/bundle.js.map
+*.tsbuildinfo
+yarn.lock
+
+# Gradle
+.gradle/
+build/
