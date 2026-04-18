@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<featJAR:FeatureModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:featJAR="http://www.example.org/featJAR" id="1" name="@36b61273-0367-4762-a8cf-93a6e41dd353">
+  <roots id="2" name="Root" featureType="ABSTRACT">
+    <features id="3" name="A" edgeType="MANDATORY">
+      <features id="1ef54258d3ab41f5b765bd96518fa75b" name="New Feature-4" edgeType="OPTIONAL"/>
+    </features>
+    <features id="sdbfjs" name="AXOR1" edgeType="OPTIONAL">
+      <features id="or-node-dwegrsegh" name="" groupType="OR">
+        <features id="sangbkwg" name="AXOR2"/>
+        <features id="sa123ngbkwg" name="AXOR3"/>
+        <features id="sang123bkwg" name="AXOR4">
+          <features id="0583c75db685480293017753942a2a96" name="New Feature-1" edgeType="MANDATORY" featureType="CONCRETE"/>
+          <features id="44ebd19c81ad48b0b11dafda982e4ad1" name="New Feature-2" edgeType="MANDATORY" featureType="CONCRETE"/>
+          <features id="ca1dde40870e465b8c21ddf2dbe7dcbe" name="New Feature-3" edgeType="OPTIONAL" featureType="CONCRETE"/>
+          <features id="637e7097a578471483e45cb99a0b796b" name="New Feature-4" edgeType="OPTIONAL" featureType="ABSTRACT"/>
+        </features>
+      </features>
+    </features>
+    <features id="4" name="B" edgeType="OPTIONAL"/>
+    <features id="5" name="C" edgeType="OPTIONAL"/>
+    <features id="2130e38cfbd9477f854333f19249dfa5" name="New Feature-5" edgeType="MANDATORY">
+      <features id="7294156048b642068fb717762f8d3cb6" name="New Feature-6" edgeType="MANDATORY"/>
+      <features id="7f2acff1eda347c6834cd11389c52eb8" name="New Feature-7" edgeType="OPTIONAL"/>
+      <features id="4c9bda7228874b9281f6ec9be7290e88" name="New Feature-8" edgeType="MANDATORY">
+        <features id="or-node-12t381t3" name="" groupType="XOR">
+          <features id="3c71296487374e8d8417b29f0e7ac894" name="New Feature-9"/>
+          <features id="23ce299753a24d33b9ddfd24d045ebdb" name="New Feature-11"/>
+          <features id="23ce299753a24d33b9ergwrgwfufgqeui4d045ebdb" name="New Feature-13"/>
+        </features>
+        <features id="63ea25cd8ef9409e93713c733c5d4ae1" name="New Feature-10" edgeType="OPTIONAL"/>
+        <features id="67b797d41c9a4c3ea5cfd02b52a31301" name="New Feature-12" edgeType="MANDATORY"/>
+      </features>
+    </features>
+  </roots>
+  <constraints id="6" name="@4562f94c-46e5-485a-bbf3-74539599130e" formula="test456"/>
+  <constraints id="7" name="@4562f94c-46e5-485a-bbf3-74539599130e" formula="test123"/>
+</featJAR:FeatureModel>

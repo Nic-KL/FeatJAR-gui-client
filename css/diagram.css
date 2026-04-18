@@ -1,0 +1,104 @@
+/********************************************************************************
+ * Copyright (c) 2019-2021 EclipseSource and others.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v. 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0.
+ *
+ * This Source Code may also be made available under the following Secondary
+ * Licenses when the conditions for such availability set forth in the Eclipse
+ * Public License v. 2.0 are satisfied: GNU General Public License, version 2
+ * with the GNU Classpath Exception which is available at
+ * https://www.gnu.org/software/classpath/license.html.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
+ ********************************************************************************/
+
+/*
+ *
+ * Defines all important styles for the entire model.
+ *
+ */
+
+/* currently unused ! */
+:root {
+     --glsp-info-foreground: blue; /* example can be used like this: color: var(--glsp-info-foreground); */
+}
+
+/* green backround like in the example */
+
+.sprotty-graph,
+.grid-background {
+    background: rgb(179, 196, 202);
+}
+
+/* general edges and nodes */
+
+.sprotty-edge {
+    stroke: black;
+}
+
+/* Styling for forms defined in feature-edge-view.tsx  */
+/* Mandatory: filled circle */
+.fm-mandatory {
+    fill: #1a1a2e;
+    stroke: #1a1a2e;
+    stroke-width: 1.5;
+}
+/* Styling for forms defined in feature-edge-view.tsx  */
+/* Optional: empty circle */
+.fm-optional {
+    fill: white;
+    stroke: #1a1a2e;
+    stroke-width: 1.5;
+}
+
+/* black labels for all nodes */
+.feature-node-root text,
+.feature-node-orxor text,
+.feature-node-mandatory text,
+.feature-node-optional text {
+    fill: black !important;
+    stroke: none !important;
+    font-weight: 500;
+}
+
+
+/* Constraints */
+
+.constraint-box rect {
+    fill: none;
+    stroke: black !important;
+    stroke-width: 3 !important;
+}
+
+/* constraint legend text */
+.constraint-label,
+.constraint-label text {
+    fill: black !important;
+    stroke: none !important;
+    font-weight: 500;
+}
+
+.constraint-title,
+.constraint-title text {
+    fill: black !important;
+    stroke: none !important;
+    font-weight: 600;
+    font-size: 18px !important;
+}
+
+
+
+
+
+/* plain nodes instead of color */
+/*.feature-node-root rect,
+.feature-node-orxor rect,
+.feature-node-mandatory rect,
+.feature-node-optional rect {
+    fill: white;
+    rx: 0;
+}*/
+
+
