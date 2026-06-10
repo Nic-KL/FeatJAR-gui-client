@@ -39,9 +39,9 @@ import {
 import { Container } from 'inversify';
 import { makeLoggerMiddleware } from 'inversify-logger-middleware';
 import '../css/diagram.css';
-import { MandatoryEdgeView, OptionalEdgeView } from './feature-edge-view';
+// import { MandatoryEdgeView, OptionalEdgeView } from './feature-edge-view';
 import { FeatureNodeView } from './feature-node-view';
-// import { standaloneTaskEditorModule } from './features/direct-task-editing/standalone-task-editor-module';
+import { FeatureCardinalityEdgeView } from './feature-edge-view';
 import { getParameters } from './url-parameters';
 
 export default function createContainer(options: IDiagramOptions): Container {
@@ -74,9 +74,13 @@ export default function createContainer(options: IDiagramOptions): Container {
     // configureModelElement(ctx, 'feature:or', GNode, FeatureNodeView);
     // configureModelElement(ctx, 'feature:xor', GNode, FeatureNodeView);
 
-    // Kanten
-    configureModelElement(ctx, 'edge-mandatory', GEdge, MandatoryEdgeView);
-    configureModelElement(ctx, 'edge-optional',  GEdge, OptionalEdgeView);
+
+    // configureModelElement(ctx, 'edge-mandatory', GEdge, MandatoryEdgeView);
+    // configureModelElement(ctx, 'edge-optional',  GEdge, OptionalEdgeView);
+    // overrideModelElement(ctx, 'edge', GEdge, GEdgeView);
+
+    configureModelElement(ctx, 'edge-mandatory', GEdge, FeatureCardinalityEdgeView);
+    configureModelElement(ctx, 'edge-optional',  GEdge, FeatureCardinalityEdgeView);
     overrideModelElement(ctx, 'edge', GEdge, GEdgeView);
 
     configureModelElement(ctx, 'label-heading', GLabel, GLabelView, {

@@ -40,14 +40,14 @@
 
 /* Styling for forms defined in feature-edge-view.tsx  */
 /* Mandatory: filled circle */
-.fm-mandatory {
+.feature-mandatory {
     fill: #1a1a2e;
     stroke: #1a1a2e;
     stroke-width: 1.5;
 }
 /* Styling for forms defined in feature-edge-view.tsx  */
 /* Optional: empty circle */
-.fm-optional {
+.feature-optional {
     fill: white;
     stroke: #1a1a2e;
     stroke-width: 1.5;

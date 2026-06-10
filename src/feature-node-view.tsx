@@ -12,8 +12,8 @@ import { VNode } from 'snabbdom';
 export class FeatureNodeView extends RectangularNodeView {
 
     override render(node: Readonly<GNode>, context: RenderingContext): VNode {
-        const width = Math.max(node.bounds.width, 100);
-        const height = Math.max(node.bounds.height, 30);
+        const width = Math.max(node.bounds.width, 1);
+        const height = Math.max(node.bounds.height, 1);
 
         const selected = node.selected;
         const strokeColor = selected ? 'blue' : 'black';
@@ -22,132 +22,177 @@ export class FeatureNodeView extends RectangularNodeView {
         const isOr = node.cssClasses?.includes('node-or') || false;
         const isXor = node.cssClasses?.includes('node-xor') || false;
         const isAnd = node.cssClasses?.includes('node-and') || false;
-        const isMultiple = node.cssClasses?.includes('node-multiple') || false;
+        const isCardinality = node.cssClasses?.includes('node-cardinality') || false;
 
-        const isAbstract = node.cssClasses?.includes('feature-abstract') || false;
-        const isConcrete = node.cssClasses?.includes('feature-concrete') || false;
+        const isAbstract = node.cssClasses?.includes('abstract') || false;
+        const isConcrete = node.cssClasses?.includes('concrete') || false;
 
-        // if(node.selected){
-        //     console.log('Current Selection: ', node.cssClasses);
-        // }
+        const isMandatory = node.cssClasses?.includes('feature-mandatory') || false;
+        const isOptional = node.cssClasses?.includes('feature-optional') || false;
 
-        if(node.selected && isAbstract){
-            console.log('Abstract ?:', isAbstract);
-        }
-        if(node.selected && isConcrete){
-            console.log('Concrete ?:', isConcrete);
-        }
-        if(node.selected && isOr){
-            console.log('Or ?:', isOr);
-        }
-        if(node.selected && isXor){
-            console.log('XOR ?:', isXor);
-        }
-        if(node.selected && isAnd){
-            console.log('AND ?:', isAnd);
-        }
-        if(node.selected && isMultiple){
-            console.log('MULTIPLE ?:', isMultiple);
-        }
+        const showMandatoryMarker =
+        isMandatory && this.hasIncomingEdgeOfType(node, 'edge-mandatory');
 
-        if(isAnd){
+        const showOptionalMarker =
+        isOptional && this.hasIncomingEdgeOfType(node, 'edge-optional');
+
+        /*
+         * AND / Cardinality groups: invisible.
+         */
+        if (isAnd || isCardinality) {
             return (
                 <g>
-                <circle
-                cx={width / 2}            // position the circle as needed
-                cy={height / 2}
-                aria-hidden="true"
-                r={Math.max(width, height) / 2} // set radius to cover desired area
-                fill="transparent"       // invisible but can capture events
-                pointerEvents="all"      // ensure it receives pointer events
-                // onPointerDown, onPointerMove, etc.
+                <rect
+                x={0}
+                y={0}
+                width={width}
+                height={height}
+                fill="transparent"
+                stroke="none"
+                pointerEvents="all"
                 />
                 {context.renderChildren(node)}
                 </g>
             );
         }
 
-        if(!isOr && !isXor){
-            // if(isAbstract){
-               return (
+        /*
+         * OR / XOR groups: visible semicircle.
+         * OR = filled, XOR = outlined only.
+         */
+        if (isOr || isXor) {
+            return (
                 <g>
-                    <rect
-                        x={0}
-                        y={0}
-                        width={width}
-                        height={height}
-                        style={{
-                            fill: isAbstract ? '#d3d3d3' : isConcrete ? '#add8e6' : 'white',
-                            stroke: strokeColor,
-                            strokeWidth: String(strokeWidth)
-                        }}
-                    />
-                    {context.renderChildren(node)}
+                {this.renderSemicircle(width, height, strokeColor, strokeWidth, isOr)}
+                {context.renderChildren(node)}
                 </g>
             );
-            // }
         }
 
-        // console.log('rendered node type:', strokeColor, node.type, node.id, node.cssClasses);
-        // console.log('rendered node type:', node.cssClasses, node.selected, strokeColor);
-
+        /*
+         * Normal feature node.
+         */
         return (
             <g>
-            {isOr || isXor
-                ? this.renderGroupedNodeShape(width, height, strokeColor, strokeWidth, isOr, isXor)
-                : (
-                    <rect
-                    x={0}
-                    y={0}
-                    width={width}
-                    height={height}
-                    fill="white"
-                    stroke={strokeColor}
-                    stroke-width={strokeWidth}
-                    />
-                )
-            }
+            <rect
+            x={0}
+            y={0}
+            width={width}
+            height={height}
+            style={{
+                fill: isAbstract ? '#d3d3d3' : isConcrete ? '#add8e6' : 'white',
+                stroke: strokeColor,
+                strokeWidth: String(strokeWidth)
+            }}
+            />
+
+            {showMandatoryMarker && (
+                <circle
+                cx={width / 2}
+                cy={0}
+                r={5}
+                fill="black"
+                stroke="black"
+                stroke-width={1}
+                />
+            )}
+
+            {showOptionalMarker && (
+                <circle
+                cx={width / 2}
+                cy={0}
+                r={5}
+                fill="white"
+                stroke="black"
+                stroke-width={1.5}
+                />
+            )}
+
             {context.renderChildren(node)}
             </g>
         );
     }
 
-    protected renderGroupedNodeShape(
+    protected hasIncomingEdgeOfType(node: Readonly<GNode>, edgeType: string): boolean {
+        return this.getIncomingEdges(node).some(edge => edge?.type === edgeType);
+    }
+
+    protected getIncomingEdges(node: Readonly<GNode>): ReadonlyArray<any> {
+        const directIncomingEdges = (node as any).incomingEdges;
+
+        if (Array.isArray(directIncomingEdges)) {
+            return directIncomingEdges;
+        }
+
+        const rootReference = (node as any).root;
+        const root = typeof rootReference === 'function' ? rootReference() : rootReference;
+
+        if (!root) {
+            return [];
+        }
+
+        const result: any[] = [];
+
+        const visit = (element: any): void => {
+            if (!element) {
+                return;
+            }
+
+            if (this.isEdgeTargetingNode(element, node.id)) {
+                result.push(element);
+            }
+
+            const children = element.children;
+            if (Array.isArray(children)) {
+                children.forEach(child => visit(child));
+            }
+        };
+
+        visit(root);
+
+        return result;
+    }
+
+    /**
+     * Checks whether a model element is an edge pointing to the given node.
+     */
+    protected isEdgeTargetingNode(element: any, nodeId: string): boolean {
+        const type = element.type;
+
+        if (typeof type !== 'string' || !type.startsWith('edge')) {
+            return false;
+        }
+
+        const targetId = element.targetId ?? element.target?.id;
+
+        return targetId === nodeId;
+    }
+
+    /**
+     * Half-ellipse filling the entire node bounds:
+     * flat top edge across the full width, bulging down to the full height.
+     */
+    protected renderSemicircle(
         width: number,
         height: number,
         strokeColor: string,
         strokeWidth: number,
-        isOr: boolean,
-        isXor: boolean
+        filled: boolean
     ): VNode {
-        const arcDepth = Math.min(18, height * 0.5);
-        const sideBottomY = height - arcDepth;
-
-        // OR / XOR form
-        const outerD = [
+        const d = [
             `M 0 0`,
             `L ${width} 0`,
-            `L ${width} ${sideBottomY}`,
-            `A ${width / 2} ${arcDepth} 0 0 1 0 ${sideBottomY}`,
-            `L 0 0`,
+            `A ${width / 2} ${height} 0 0 1 0 0`,
             `Z`
         ].join(' ');
 
-
-        const fillColor = isOr ? 'black' : 'white';
-
         return (
-            <g>
             <path
-            d={outerD}
-            fill={fillColor}
+            d={d}
+            fill={filled ? strokeColor : 'white'}
             stroke={strokeColor}
             stroke-width={strokeWidth}
             />
-            </g>
         );
-
-
-
     }
 }

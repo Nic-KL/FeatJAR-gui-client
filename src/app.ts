@@ -71,7 +71,6 @@ async function initialize(connectionProvider: MessageConnection, isReconnecting 
     console.log('Diagram Type:', diagramType);
     console.log('WebSocket URL:', webSocketUrl);
     console.log('Source URI:', examplePath);
-    console.log('GRADLE_WRAPPER TESTT');
     
     glspClient = new BaseJsonrpcGLSPClient({ id, connectionProvider });
     container = createContainer({ 

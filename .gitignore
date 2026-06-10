@@ -10,3 +10,10 @@ yarn.lock
 # Gradle
 .gradle/
 build/
+
+
+*.featuremodel
+*.off
+*.save
+*.latest
+*.old
