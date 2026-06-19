@@ -93,18 +93,3 @@
     font-weight: 600;
     font-size: 18px !important;
 }
-
-
-
-
-
-/* plain nodes instead of color */
-/*.feature-node-root rect,
-.feature-node-orxor rect,
-.feature-node-mandatory rect,
-.feature-node-optional rect {
-    fill: white;
-    rx: 0;
-}*/
-
-

@@ -20,7 +20,7 @@ export class FeatureCardinalityEdgeView extends GEdgeView {
         segments: Point[],
         context: RenderingContext
     ): VNode {
-        return super.renderLine(edge, this.connectToCardinalityCircle(edge, segments), context);
+        return super.renderLine(edge, this.adjustSegments(edge, segments), context);
     }
 
     protected override renderAdditionals(
@@ -28,7 +28,56 @@ export class FeatureCardinalityEdgeView extends GEdgeView {
         segments: Point[],
         context: RenderingContext
     ): VNode[] {
-        return super.renderAdditionals(edge, this.connectToCardinalityCircle(edge, segments), context);
+        return super.renderAdditionals(edge, this.adjustSegments(edge, segments), context);
+    }
+
+    protected adjustSegments(edge: Readonly<GEdge>, segments: Point[]): Point[] {
+        return this.connectSourceToGroupBorder(edge, this.connectToCardinalityCircle(edge, segments));
+    }
+
+    /**
+     * If the edge starts at an OR/XOR group node, move the first route point
+     * onto the border of the semicircle (half-ellipse). The semicircle is a
+     * half-ellipse with center at the top-center of the node bounds,
+     * rx = width / 2 and ry = height.
+     */
+    protected connectSourceToGroupBorder(edge: Readonly<GEdge>, segments: Point[]): Point[] {
+        if (segments.length < 2) {
+            return segments;
+        }
+
+        const source = edge.source as GNode | undefined;
+        if (!source || !source.bounds) {
+            return segments;
+        }
+
+        const cssClasses = source.cssClasses ?? [];
+        const isOrXor = cssClasses.includes('node-or') || cssClasses.includes('node-xor');
+        if (!isOrXor) {
+            return segments;
+        }
+
+        const b = source.bounds;
+        const cx = b.x + b.width / 2;   // ellipse center x (top-center)
+        const cy = b.y;                 // ellipse center y (flat top edge)
+        const rx = b.width / 2;
+        const ry = b.height;
+
+        const routed = segments.map(p => ({ ...p }));
+        const next = routed[1];
+
+        const dx = next.x - cx;
+        const dy = next.y - cy;
+        const denom = Math.sqrt((dx * dx) / (rx * rx) + (dy * dy) / (ry * ry));
+        if (denom === 0) {
+            return routed;
+        }
+
+        // Scale the direction vector so it ends exactly on the ellipse border
+        const t = 1 / denom;
+        routed[0] = { x: cx + dx * t, y: cy + dy * t };
+
+        return routed;
     }
 
     protected connectToCardinalityCircle(edge: Readonly<GEdge>, segments: Point[]): Point[] {
@@ -43,34 +92,45 @@ export class FeatureCardinalityEdgeView extends GEdgeView {
 
         const cssClasses = target.cssClasses ?? [];
 
-        const hasCardinalityCircle =
-        cssClasses.includes('feature-mandatory') ||
-        cssClasses.includes('feature-optional');
-
-        if (!hasCardinalityCircle) {
+        // Do not modify edges that end at a group node (semicircle / invisible point)
+        const isGroupTarget = cssClasses.some(c => c.startsWith('node-'));
+        if (isGroupTarget) {
             return segments;
         }
 
+        // A circle is only rendered when the edge type matches
+        // (same criterion as in FeatureNodeView.hasIncomingEdgeOfType)
+        const hasCardinalityCircle =
+        edge.type === 'edge-mandatory' || edge.type === 'edge-optional';
+
         const bounds = target.bounds;
-        const circleCenter = {
+
+        // Top-center of the target node
+        const topCenter = {
             x: bounds.x + bounds.width / 2,
             y: bounds.y
         };
 
         const routedSegments = segments.map(p => ({ ...p }));
 
-        const previous = routedSegments[routedSegments.length - 2];
+        if (hasCardinalityCircle) {
+            // End the edge on the border of the circle
+            const previous = routedSegments[routedSegments.length - 2];
+            const dx = previous.x - topCenter.x;
+            const dy = previous.y - topCenter.y;
+            const length = Math.sqrt(dx * dx + dy * dy) || 1;
 
-        const dx = previous.x - circleCenter.x;
-        const dy = previous.y - circleCenter.y;
-        const length = Math.sqrt(dx * dx + dy * dy) || 1;
-
-        const circleBorderPoint = {
-            x: circleCenter.x + (dx / length) * CARDINALITY_RADIUS,
-            y: circleCenter.y + (dy / length) * CARDINALITY_RADIUS
-        };
-
-        routedSegments[routedSegments.length - 1] = circleBorderPoint;
+            routedSegments[routedSegments.length - 1] = {
+                x: topCenter.x + (dx / length) * CARDINALITY_RADIUS,
+                y: topCenter.y + (dy / length) * CARDINALITY_RADIUS
+            };
+        } else {
+            // If there is no cycle, extend the edge
+            routedSegments[routedSegments.length - 1] = {
+                x: topCenter.x,
+                y: topCenter.y // + 0.1
+            };
+        }
 
         return routedSegments;
     }

@@ -19,7 +19,7 @@ import {
     ConsoleLogger,
     EditMode,
     GEdge,
-    GEdgeView,
+    // GEdgeView,
     IDiagramOptions,
     LogLevel,
     STANDALONE_MODULE_CONFIG,
@@ -81,7 +81,8 @@ export default function createContainer(options: IDiagramOptions): Container {
 
     configureModelElement(ctx, 'edge-mandatory', GEdge, FeatureCardinalityEdgeView);
     configureModelElement(ctx, 'edge-optional',  GEdge, FeatureCardinalityEdgeView);
-    overrideModelElement(ctx, 'edge', GEdge, GEdgeView);
+    overrideModelElement(ctx, 'edge', GEdge, FeatureCardinalityEdgeView);
+    // overrideModelElement(ctx, 'edge', GEdge, GEdgeView);
 
     configureModelElement(ctx, 'label-heading', GLabel, GLabelView, {
         enable: [editLabelFeature]
