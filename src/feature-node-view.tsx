@@ -40,17 +40,37 @@ export class FeatureNodeView extends RectangularNodeView {
          * AND / Cardinality groups: invisible.
          */
         if (isAnd || isCardinality) {
+            const args = (node as any).args as Record<string, unknown> | undefined;
+            const lower = (args?.['lowerBound'] as number) ?? 0;
+            const upper = (args?.['upperBound'] as number) ?? -1;
+            const boundsText = `[${lower}..${upper === -1 ? '*' : upper}]`;
+
+            const cx = width / 2;
+            const cy = height / 2;
+
+            // Raute (Diamant): oben, rechts, unten, links
+            const diamond = `M ${cx} 0 L ${width} ${cy} L ${cx} ${height} L 0 ${cy} Z`;
+
             return (
                 <g>
-                <rect
-                x={0}
-                y={0}
-                width={width}
-                height={height}
-                fill="transparent"
-                stroke="none"
-                pointerEvents="all"
+                <path
+                d={diamond}
+                fill={isAnd ? 'black' : 'white'}
+                stroke="black"
+                stroke-width={strokeWidth}
                 />
+                {isCardinality && (
+                    <text
+                    x={cx}
+                    y={cy}
+                    text-anchor="middle"
+                    dominant-baseline="central"
+                    font-size="10"
+                    fill="black"
+                    >
+                    {boundsText}
+                    </text>
+                )}
                 {context.renderChildren(node)}
                 </g>
             );

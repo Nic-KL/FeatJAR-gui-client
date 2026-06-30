@@ -28,6 +28,9 @@ import { Container } from 'inversify';
 import { join, resolve } from 'path';
 import { MessageConnection } from 'vscode-jsonrpc';
 import createContainer from './di.config';
+import { ClientMessageAction } from './client-message-action';
+import { ExitAction } from './client-exit-action';
+
 
 const host = GLSP_SERVER_HOST;
 const port = GLSP_SERVER_PORT;
@@ -82,6 +85,29 @@ async function initialize(connectionProvider: MessageConnection, isReconnecting 
     
     const actionDispatcher = container.get(GLSPActionDispatcher);
     const diagramLoader = container.get(DiagramLoader);
+    const button = document.createElement('button');
+
+    button.textContent = 'Save & Exit';
+    button.style.position = 'fixed';
+    button.style.top = '10px';
+    button.style.left = '10px';
+    button.style.zIndex = '1000';
+    button.style.background = 'red';
+    button.style.padding = '4px 8px';
+    button.style.fontSize = '15px';
+    button.onclick = () => actionDispatcher.dispatch(ExitAction.create());
+
+    document.body.appendChild(button);
+
+    if (!(window as any).__exitKeyBound) {
+        document.addEventListener('keydown', (event: KeyboardEvent) => {
+            if (event.ctrlKey && event.altKey && event.code === 'KeyE') {
+                event.preventDefault();
+                actionDispatcher.dispatch(ExitAction.create());
+            }
+        });
+        (window as any).__exitKeyBound = true;
+    }
     
     await diagramLoader.load({
         requestModelOptions: { isReconnecting },
@@ -90,6 +116,9 @@ async function initialize(connectionProvider: MessageConnection, isReconnecting 
         // enableNotifications: false
         enableNotifications: true
     });
+
+    actionDispatcher.dispatch(ClientMessageAction.create('Hello from Client'));
+    // actionDispatcher.dispatch(ExitAction.create());
 
     if (isReconnecting) {
         const message = `Connection to the ${id} glsp server got closed. Connection was successfully re-established.`;

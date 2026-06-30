@@ -39,7 +39,6 @@ import {
 import { Container } from 'inversify';
 import { makeLoggerMiddleware } from 'inversify-logger-middleware';
 import '../css/diagram.css';
-// import { MandatoryEdgeView, OptionalEdgeView } from './feature-edge-view';
 import { FeatureNodeView } from './feature-node-view';
 import { FeatureCardinalityEdgeView } from './feature-edge-view';
 import { getParameters } from './url-parameters';
