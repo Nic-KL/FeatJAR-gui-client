@@ -27,7 +27,22 @@
     --glsp-warning-foreground: #f9a825;
 }
 
+.command-palette {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+}
 
+.autocomplete.command-palette-suggestions {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+}
+
+/* .sprotty .command-palette,
+#sprotty .command-palette {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    right: auto !important;
+} */
 
 .command-palette.validation.error,
 .command-palette.validation.warning {

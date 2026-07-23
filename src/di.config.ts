@@ -38,10 +38,14 @@ import {
 } from '@eclipse-glsp/client';
 import { Container } from 'inversify';
 import { makeLoggerMiddleware } from 'inversify-logger-middleware';
-import '../css/diagram.css';
 import { FeatureNodeView } from './feature-node-view';
 import { FeatureCardinalityEdgeView } from './feature-edge-view';
 import { getParameters } from './url-parameters';
+import { SessionManagementPanel } from './session-management-panel';
+import { FeatureSearchProvider } from './feature-search-provider';
+
+import '../css/diagram.css';
+import '../css/command-palette.css';
 
 export default function createContainer(options: IDiagramOptions): Container {
     const parameters = getParameters();
@@ -86,6 +90,17 @@ export default function createContainer(options: IDiagramOptions): Container {
     configureModelElement(ctx, 'label-heading', GLabel, GLabelView, {
         enable: [editLabelFeature]
     });
+
+    // Session management panel
+
+    container.bind(SessionManagementPanel).toSelf().inSingletonScope();
+    container.bind(TYPES.IUIExtension).toService(SessionManagementPanel);
+    container.bind(TYPES.IDiagramStartup).toService(SessionManagementPanel);
+
+    // Command palette
+    // Search
+    container.bind(TYPES.ICommandPaletteActionProvider).to(FeatureSearchProvider).inSingletonScope(); 
+
 
     bindOrRebind(container, TYPES.ILogger).to(ConsoleLogger).inSingletonScope();
     bindOrRebind(container, TYPES.LogLevel).toConstantValue(LogLevel.warn);

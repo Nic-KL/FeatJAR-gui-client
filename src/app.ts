@@ -28,36 +28,34 @@ import { Container } from 'inversify';
 import { join, resolve } from 'path';
 import { MessageConnection } from 'vscode-jsonrpc';
 import createContainer from './di.config';
-import { ClientMessageAction } from './client-message-action';
 import { ExitAction } from './client-exit-action';
+import { SaveAction } from './client-save-action';
 
 
-const host = GLSP_SERVER_HOST;
-const port = GLSP_SERVER_PORT;
+const HOST = GLSP_SERVER_HOST;
+const PORT = GLSP_SERVER_PORT;
 
+// (see FeatureModelDiagramModule.java)
+const DIAGRAM_TYPE = 'featuremodel-diagram';
 // The server uses 'featuremodel' as the WebSocket endpoint
 // (see FeatureModelServerLauncher.java: "/featuremodel")
-const id = 'featuremodel';
+const ENDPOINT_ID = 'featuremodel';
+const HTML_FILE = 'gui_model'+ '.' + ENDPOINT_ID ;
 
-// The server is configured for 'tasklist-diagram'
-// (see FeatureModelDiagramModule.java)
-const diagramType = 'featuremodel-diagram';
-
-// path to model file
 const loc = window.location.pathname;
-const currentDir = loc.substring(0, loc.lastIndexOf('/'));
-const examplePath = resolve(join(currentDir, '../app/My Model.featuremodel'));
-const clientId = 'sprotty';
+const CLIENT_PATH = loc.substring(0, loc.lastIndexOf('/'));
+const CLIENT_ABSOLUTE_EMF_FILE_PATH = resolve(join(CLIENT_PATH, '..', 'app', HTML_FILE));
+const CLIENT_ID = 'sprotty';
 
 // WebSocket URL: Server is listening on /featuremodel
-const webSocketUrl = `ws://${host}:${port}/${id}`;
+const WEBSOCKET_URL = `ws://${HOST}:${PORT}/${ENDPOINT_ID}`;
 
 let glspClient: GLSPClient;
 let container: Container;
 // default with reconnect every 30s -> bad !
 // const wsProvider = new GLSPWebSocketProvider(webSocketUrl);
 // Sets reconnect to 10 min
-const wsProvider = new GLSPWebSocketProvider(webSocketUrl, {
+const wsProvider = new GLSPWebSocketProvider(WEBSOCKET_URL, {
     reconnecting: true,
     reconnectDelay: 10 * 60 * 1000  // 10 minutes in ms -> works !
 });
@@ -67,43 +65,34 @@ const wsProvider = new GLSPWebSocketProvider(webSocketUrl, {
 //     reconnecting: false,
 // });
 
+console.log(CLIENT_ABSOLUTE_EMF_FILE_PATH)
+
 wsProvider.listen({ onConnection: initialize, onReconnect: reconnect, logger: console });
 
 async function initialize(connectionProvider: MessageConnection, isReconnecting = false): Promise<void> {
     console.log('Initializing Feature Model GLSP Client...');
-    console.log('Diagram Type:', diagramType);
-    console.log('WebSocket URL:', webSocketUrl);
-    console.log('Source URI:', examplePath);
+    console.log('Diagram Type:', DIAGRAM_TYPE);
+    console.log('WebSocket URL:', WEBSOCKET_URL);
+    console.log('Source URI:', CLIENT_ABSOLUTE_EMF_FILE_PATH);
     
-    glspClient = new BaseJsonrpcGLSPClient({ id, connectionProvider });
+    glspClient = new BaseJsonrpcGLSPClient({ id: ENDPOINT_ID, connectionProvider });
     container = createContainer({ 
-        clientId, 
-        diagramType, 
+        clientId: CLIENT_ID, 
+        diagramType: DIAGRAM_TYPE, 
         glspClientProvider: async () => glspClient, 
-        sourceUri: examplePath 
+        sourceUri: CLIENT_ABSOLUTE_EMF_FILE_PATH 
     });
     
     const actionDispatcher = container.get(GLSPActionDispatcher);
     const diagramLoader = container.get(DiagramLoader);
-    const button = document.createElement('button');
-
-    button.textContent = 'Save & Exit';
-    button.style.position = 'fixed';
-    button.style.top = '10px';
-    button.style.left = '10px';
-    button.style.zIndex = '1000';
-    button.style.background = 'red';
-    button.style.padding = '4px 8px';
-    button.style.fontSize = '15px';
-    button.onclick = () => actionDispatcher.dispatch(ExitAction.create());
-
-    document.body.appendChild(button);
 
     if (!(window as any).__exitKeyBound) {
         document.addEventListener('keydown', (event: KeyboardEvent) => {
             if (event.ctrlKey && event.altKey && event.code === 'KeyE') {
                 event.preventDefault();
                 actionDispatcher.dispatch(ExitAction.create());
+            } else if(event.ctrlKey && event.altKey && event.code == 'KeyS'){
+                actionDispatcher.dispatch(SaveAction.create());
             }
         });
         (window as any).__exitKeyBound = true;
@@ -111,17 +100,11 @@ async function initialize(connectionProvider: MessageConnection, isReconnecting 
     
     await diagramLoader.load({
         requestModelOptions: { isReconnecting },
-        // bad for debugging
-        // initializeParameters: { applicationId: 'workflow-standalone' },
-        // enableNotifications: false
         enableNotifications: true
     });
 
-    actionDispatcher.dispatch(ClientMessageAction.create('Hello from Client'));
-    // actionDispatcher.dispatch(ExitAction.create());
-
     if (isReconnecting) {
-        const message = `Connection to the ${id} glsp server got closed. Connection was successfully re-established.`;
+        const message = `Connection to the ${ENDPOINT_ID} glsp server got closed. Connection was successfully re-established.`;
         const timeout = 5000;
         const severity = 'WARNING';
         actionDispatcher.dispatchAll([
