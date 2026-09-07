@@ -1,33 +1,27 @@
-/** @jsx svg */
-import {
-    GEdge,
-    GEdgeView,
-    GNode,
-    RenderingContext,
-//     svg
-} from '@eclipse-glsp/client';
+import { GEdge, GEdgeView, GNode, RenderingContext } from '@eclipse-glsp/client';
 import { injectable } from 'inversify';
 import { VNode } from 'snabbdom';
-import { Point } from 'sprotty-protocol';
+import { Point } from '@eclipse-glsp/client';
 
 const CARDINALITY_RADIUS = 5;
 
+/**
+ * Draws edges so that they meet their target node at the point where
+ * the mandatory / optional circle marker is located (in the middle of the target node).
+ *
+ * For rectangular anchor points, the endpoint is placed where the line intersects the node boundaries.
+ * This creates a gap next to the marker circle and makes the endpoint appear detached in the case of
+ * default edges. The endpoint is therefore moved to the top center of the target node,
+ * and the starting point is moved to the outline of an OR or XOR semicircle.
+ */
+
 @injectable()
 export class FeatureCardinalityEdgeView extends GEdgeView {
-
-    protected override renderLine(
-        edge: Readonly<GEdge>,
-        segments: Point[],
-        context: RenderingContext
-    ): VNode {
+    protected override renderLine(edge: Readonly<GEdge>, segments: Point[], context: RenderingContext): VNode {
         return super.renderLine(edge, this.adjustSegments(edge, segments), context);
     }
 
-    protected override renderAdditionals(
-        edge: GEdge,
-        segments: Point[],
-        context: RenderingContext
-    ): VNode[] {
+    protected override renderAdditionals(edge: GEdge, segments: Point[], context: RenderingContext): VNode[] {
         return super.renderAdditionals(edge, this.adjustSegments(edge, segments), context);
     }
 
@@ -37,9 +31,7 @@ export class FeatureCardinalityEdgeView extends GEdgeView {
 
     /**
      * If the edge starts at an OR/XOR group node, move the first route point
-     * onto the border of the semicircle (half-ellipse). The semicircle is a
-     * half-ellipse with center at the top-center of the node bounds,
-     * rx = width / 2 and ry = height.
+     * onto the border of the semicircle.
      */
     protected connectSourceToGroupBorder(edge: Readonly<GEdge>, segments: Point[]): Point[] {
         if (segments.length < 2) {
@@ -58,8 +50,8 @@ export class FeatureCardinalityEdgeView extends GEdgeView {
         }
 
         const b = source.bounds;
-        const cx = b.x + b.width / 2;   // ellipse center x (top-center)
-        const cy = b.y;                 // ellipse center y (flat top edge)
+        const cx = b.x + b.width / 2; // ellipse center x (top-center)
+        const cy = b.y; // ellipse center y (flat top edge)
         const rx = b.width / 2;
         const ry = b.height;
 
@@ -99,13 +91,11 @@ export class FeatureCardinalityEdgeView extends GEdgeView {
         }
 
         // A circle is only rendered when the edge type matches
-        // (same criterion as in FeatureNodeView.hasIncomingEdgeOfType)
-        const hasCardinalityCircle =
-        edge.type === 'edge-mandatory' || edge.type === 'edge-optional';
+        const hasCardinalityCircle = edge.type === 'edge-mandatory' || edge.type === 'edge-optional';
 
         const bounds = target.bounds;
 
-        // Top-center of the target node
+        // The top center of the target node
         const topCenter = {
             x: bounds.x + bounds.width / 2,
             y: bounds.y
@@ -125,7 +115,7 @@ export class FeatureCardinalityEdgeView extends GEdgeView {
                 y: topCenter.y + (dy / length) * CARDINALITY_RADIUS
             };
         } else {
-            // If there is no cycle, extend the edge
+            // If there is no cycle, extend the edge (with XOR and OR groups)
             routedSegments[routedSegments.length - 1] = {
                 x: topCenter.x,
                 y: topCenter.y // + 0.1

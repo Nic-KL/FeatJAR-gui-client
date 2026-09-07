@@ -11,9 +11,12 @@ yarn.lock
 .gradle/
 build/
 
+.vscode/
+
 
 *.featuremodel
 *.off
 *.save
 *.latest
 *.old
+*.zip
