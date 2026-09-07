@@ -15,9 +15,7 @@
  ********************************************************************************/
 
 /*
- *
  * Defines all important styles for the entire model.
- *
  */
 
 /* currently unused ! */
@@ -25,7 +23,7 @@
      --glsp-info-foreground: blue; /* example can be used like this: color: var(--glsp-info-foreground); */
 }
 
-/* green backround like in the example */
+/* green backround */
 
 .sprotty-graph,
 .grid-background {
@@ -38,15 +36,15 @@
     stroke: black;
 }
 
-/* Styling for forms defined in feature-edge-view.tsx  */
-/* Mandatory: filled circle */
+/* Styling for forms defined in feature-edge-view.tsx
+ * Mandatory gets filled circle */
 .feature-mandatory {
     fill: #1a1a2e;
     stroke: #1a1a2e;
     stroke-width: 1.5;
 }
-/* Styling for forms defined in feature-edge-view.tsx  */
-/* Optional: empty circle */
+/* Styling for forms defined in feature-edge-view.tsx
+ * Optional gets an empty circle */
 .feature-optional {
     fill: white;
     stroke: #1a1a2e;
@@ -61,24 +59,31 @@
 }
 
 /* black labels for all nodes */
-/*.node-or text,
-.node-xor text,
-.node-and text,*/
 .node-cardinality text {
     fill: black !important;
     stroke: none !important;
     font-weight: 500;
 }
 
-/* Constraints */
 
-.constraint-box rect {
-    fill: none;
-    stroke: rgb(83, 72, 72) !important;
-    stroke-width: 3 !important;
+/* Node cardinality size */
+.sprotty .label-node-cardinality {
+    font-size: 14px;
+    fill: black;
 }
 
-/* constraint legend text */
+/* Multiple feature cardinality size */
+.sprotty .label-edge-cardinality {
+    font-size: 14px;
+    fill: black;
+}
+
+/* Constraints */
+ .constraint-box rect {
+    stroke: none;
+    fill: transparent;
+}
+
 .constraint-label,
 .constraint-label text {
     fill: black !important;
@@ -86,12 +91,12 @@
     font-weight: 500;
 }
 
-.constraint-title,
-.constraint-title text {
-    fill: black !important;
-    stroke: none !important;
-    font-weight: 600;
-    font-size: 18px !important;
+.constraint-node {
+    stroke: rgb(83, 72, 72) !important;
+}
+
+.constraint-title {
+    font-weight: bold;
 }
 
 

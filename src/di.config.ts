@@ -19,7 +19,6 @@ import {
     ConsoleLogger,
     EditMode,
     GEdge,
-    // GEdgeView,
     IDiagramOptions,
     LogLevel,
     STANDALONE_MODULE_CONFIG,
@@ -34,7 +33,8 @@ import {
     GNode,
     GLabel,
     GLabelView,
-    editLabelFeature
+    editLabelFeature,
+    contextMenuModule
 } from '@eclipse-glsp/client';
 import { Container } from 'inversify';
 import { makeLoggerMiddleware } from 'inversify-logger-middleware';
@@ -47,22 +47,32 @@ import { FeatureSearchProvider } from './feature-search-provider';
 import '../css/diagram.css';
 import '../css/command-palette.css';
 
+/**
+ * Builds the  container for the diagram.
+ *
+ * Registers the views, element types, and services that determine how the
+ * diagram is rendered and how the user interacts with it.
+ *
+ * @param options connection and diagram settings passed from the entry point
+ * @returns the container used for this connection
+ */
 export default function createContainer(options: IDiagramOptions): Container {
     const parameters = getParameters();
     if (parameters.readonly) {
         options.editMode = EditMode.READONLY;
     }
-
+    // The tool palette module is replaced by the server-side palette because the entries
+    // come from the server instead.
     const container = createWorkflowDiagramContainer(
         createDiagramOptionsModule(options),
-    {
-        add: [accessibilityModule],
-        remove: toolPaletteModule
-    },
-    STANDALONE_MODULE_CONFIG
+        {
+            add: [accessibilityModule],
+            remove: [toolPaletteModule, contextMenuModule]
+        },
+        STANDALONE_MODULE_CONFIG
     );
 
-    // COntext for configureModelElement / overrideModelElement
+    // Context for configureModelElement / overrideModelElement
     const ctx = {
         bind: container.bind.bind(container),
         isBound: container.isBound.bind(container)
@@ -71,21 +81,12 @@ export default function createContainer(options: IDiagramOptions): Container {
     // own view for feature nodes which draws curves
     overrideModelElement(ctx, DefaultTypes.NODE, GNode, FeatureNodeView);
 
-    // configureModelElement(ctx, 'feature:root', GNode, FeatureNodeView);
-    // configureModelElement(ctx, 'feature:mandatory', GNode, FeatureNodeView);
-    // configureModelElement(ctx, 'feature:optional', GNode, FeatureNodeView);
-    // configureModelElement(ctx, 'feature:or', GNode, FeatureNodeView);
-    // configureModelElement(ctx, 'feature:xor', GNode, FeatureNodeView);
-
-
-    // configureModelElement(ctx, 'edge-mandatory', GEdge, MandatoryEdgeView);
-    // configureModelElement(ctx, 'edge-optional',  GEdge, OptionalEdgeView);
-    // overrideModelElement(ctx, 'edge', GEdge, GEdgeView);
+    // constraints are the only 'special' type of nodes because they have a box
+    configureModelElement(ctx, 'constraint-box', GNode, FeatureNodeView);
 
     configureModelElement(ctx, 'edge-mandatory', GEdge, FeatureCardinalityEdgeView);
-    configureModelElement(ctx, 'edge-optional',  GEdge, FeatureCardinalityEdgeView);
+    configureModelElement(ctx, 'edge-optional', GEdge, FeatureCardinalityEdgeView);
     overrideModelElement(ctx, 'edge', GEdge, FeatureCardinalityEdgeView);
-    // overrideModelElement(ctx, 'edge', GEdge, GEdgeView);
 
     configureModelElement(ctx, 'label-heading', GLabel, GLabelView, {
         enable: [editLabelFeature]
@@ -97,10 +98,12 @@ export default function createContainer(options: IDiagramOptions): Container {
     container.bind(TYPES.IUIExtension).toService(SessionManagementPanel);
     container.bind(TYPES.IDiagramStartup).toService(SessionManagementPanel);
 
-    // Command palette
-    // Search
-    container.bind(TYPES.ICommandPaletteActionProvider).to(FeatureSearchProvider).inSingletonScope(); 
+    // Command palette search
+    container.bind(TYPES.ICommandPaletteActionProvider).to(FeatureSearchProvider).inSingletonScope();
 
+    // Cardinality labels
+    configureModelElement(ctx, 'label-edge-cardinality', GLabel, GLabelView);
+    configureModelElement(ctx, 'label-node-cardinality', GLabel, GLabelView);
 
     bindOrRebind(container, TYPES.ILogger).to(ConsoleLogger).inSingletonScope();
     bindOrRebind(container, TYPES.LogLevel).toConstantValue(LogLevel.warn);

@@ -1,16 +1,18 @@
 /** @jsx svg */
-import {
-    GNode,
-    RectangularNodeView,
-    RenderingContext,
-    svg
-} from '@eclipse-glsp/client';
+import { GNode, RectangularNodeView, RenderingContext, svg } from '@eclipse-glsp/client';
 import { injectable } from 'inversify';
 import { VNode } from 'snabbdom';
 
+/**
+ * Renders every node of the feature model.
+ *
+ * All nodes can be distinguished through their CSS class.
+ * Features get a rectangle and group nodes are treated special:
+ * OR and XOR groups get a semicircle, AND and cardinality groups get a diamond shape.
+ * Sometimes a check has to use the full name, otherwise there would be name collisions.
+ */
 @injectable()
 export class FeatureNodeView extends RectangularNodeView {
-
     override render(node: Readonly<GNode>, context: RenderingContext): VNode {
         const width = Math.max(node.bounds.width, 1);
         const height = Math.max(node.bounds.height, 1);
@@ -29,62 +31,80 @@ export class FeatureNodeView extends RectangularNodeView {
 
         const isMandatory = node.cssClasses?.includes('feature-mandatory') || false;
         const isOptional = node.cssClasses?.includes('feature-optional') || false;
+        // const isMultiple = node.cssClasses?.includes('feature-multiple') || false;
 
-        const showMandatoryMarker =
-        isMandatory && this.hasIncomingEdgeOfType(node, 'edge-mandatory');
+        const isConstraint = node.cssClasses?.includes('constraint-node') || false;
 
-        const showOptionalMarker =
-        isOptional && this.hasIncomingEdgeOfType(node, 'edge-optional');
+        const showMandatoryMarker = isMandatory && this.hasIncomingEdgeOfType(node, 'edge-mandatory');
+        const showOptionalMarker = isOptional && this.hasIncomingEdgeOfType(node, 'edge-optional');
+
+        const isConstraintBox = node.cssClasses?.includes('constraint-box') || false;
+        const isConstraintTitle = node.cssClasses?.includes('constraint-title') || false;
 
         /*
-         * AND / Cardinality groups: invisible.
+         * Constraint box only a container
          */
-        if (isAnd || isCardinality) {
-            const args = (node as any).args as Record<string, unknown> | undefined;
-            const lower = (args?.['lowerBound'] as number) ?? 0;
-            const upper = (args?.['upperBound'] as number) ?? -1;
-            const boundsText = `[${lower}..${upper === -1 ? '*' : upper}]`;
-
-            const cx = width / 2;
-            const cy = height / 2;
-
-            // Raute (Diamant): oben, rechts, unten, links
-            const diamond = `M ${cx} 0 L ${width} ${cy} L ${cx} ${height} L 0 ${cy} Z`;
-
+        if (isConstraintBox) {
             return (
                 <g>
-                <path
-                d={diamond}
-                fill={isAnd ? 'black' : 'white'}
-                stroke="black"
-                stroke-width={strokeWidth}
-                />
-                {isCardinality && (
-                    <text
-                    x={cx}
-                    y={cy}
-                    text-anchor="middle"
-                    dominant-baseline="central"
-                    font-size="10"
-                    fill="black"
-                    >
-                    {boundsText}
-                    </text>
-                )}
-                {context.renderChildren(node)}
+                    <rect x={0} y={0} width={width} height={height} fill='none' stroke='black' stroke-width={1} />
+                    {context.renderChildren(node)}
                 </g>
             );
         }
 
         /*
-         * OR / XOR groups: visible semicircle.
-         * OR = filled, XOR = outlined only.
+         * Constraint box title with plain text, no shape
+         */
+        if (isConstraint) {
+            return (
+                <g>
+                    <rect
+                        x={0}
+                        y={0}
+                        width={width}
+                        height={height}
+                        style={{
+                            fill: 'transparent',
+                            stroke: selected ? 'blue' : 'none',
+                            strokeWidth: String(strokeWidth)
+                        }}
+                        pointerEvents='all'
+                    />
+                    <line x1={0} y1={height} x2={width} y2={height} stroke='#666' stroke-width={1} />
+                    {context.renderChildren(node)}
+                </g>
+            );
+        }
+
+        /*
+         * AND / Cardinality groups.
+         */
+        if (isAnd || isCardinality) {
+            const cx = width / 2;
+            const cy = height / 2;
+            const diamond = `M ${cx} 0 L ${width} ${cy} L ${cx} ${height} L 0 ${cy} Z`;
+
+            /*
+             * Returns a diamond node for the AND / Cardinality groups
+             */
+            return (
+                <g>
+                    <path d={diamond} fill={isAnd ? 'black' : 'white'} stroke={strokeColor} stroke-width={strokeWidth} />
+                    {context.renderChildren(node)}
+                </g>
+            );
+        }
+
+        /*
+         * Returns for OR / XOR groups a fancy semicircle.
+         * OR = completely filled, XOR = border only.
          */
         if (isOr || isXor) {
             return (
                 <g>
-                {this.renderSemicircle(width, height, strokeColor, strokeWidth, isOr)}
-                {context.renderChildren(node)}
+                    {this.renderSemicircle(width, height, strokeColor, strokeWidth, isOr)}
+                    {context.renderChildren(node)}
                 </g>
             );
         }
@@ -94,41 +114,23 @@ export class FeatureNodeView extends RectangularNodeView {
          */
         return (
             <g>
-            <rect
-            x={0}
-            y={0}
-            width={width}
-            height={height}
-            style={{
-                fill: isAbstract ? '#d3d3d3' : isConcrete ? '#add8e6' : 'white',
-                stroke: strokeColor,
-                strokeWidth: String(strokeWidth)
-            }}
-            />
-
-            {showMandatoryMarker && (
-                <circle
-                cx={width / 2}
-                cy={0}
-                r={5}
-                fill="black"
-                stroke="black"
-                stroke-width={1}
+                <rect
+                    x={0}
+                    y={0}
+                    width={width}
+                    height={height}
+                    style={{
+                        fill: isAbstract ? '#d3d3d3' : isConcrete ? '#add8e6' : 'white',
+                        stroke: isConstraintTitle ? 'black' : strokeColor,
+                        strokeWidth: isConstraintTitle ? String(1) : String(strokeWidth)
+                    }}
                 />
-            )}
 
-            {showOptionalMarker && (
-                <circle
-                cx={width / 2}
-                cy={0}
-                r={5}
-                fill="white"
-                stroke="black"
-                stroke-width={1.5}
-                />
-            )}
+                {showMandatoryMarker && <circle cx={width / 2} cy={0} r={5} fill='black' stroke='black' stroke-width={1} />}
 
-            {context.renderChildren(node)}
+                {showOptionalMarker && <circle cx={width / 2} cy={0} r={5} fill='white' stroke='black' stroke-width={1.5} />}
+
+                {context.renderChildren(node)}
             </g>
         );
     }
@@ -174,7 +176,7 @@ export class FeatureNodeView extends RectangularNodeView {
     }
 
     /**
-     * Checks whether a model element is an edge pointing to the given node.
+     * Checks if the element is an edge, connected, and points to the node.
      */
     protected isEdgeTargetingNode(element: any, nodeId: string): boolean {
         const type = element.type;
@@ -189,30 +191,11 @@ export class FeatureNodeView extends RectangularNodeView {
     }
 
     /**
-     * Half-ellipse filling the entire node bounds:
-     * flat top edge across the full width, bulging down to the full height.
+     * Renders the semi-circle that fills the entire node area. It is the basis for OR and XOR nodes.
      */
-    protected renderSemicircle(
-        width: number,
-        height: number,
-        strokeColor: string,
-        strokeWidth: number,
-        filled: boolean
-    ): VNode {
-        const d = [
-            `M 0 0`,
-            `L ${width} 0`,
-            `A ${width / 2} ${height} 0 0 1 0 0`,
-            `Z`
-        ].join(' ');
+    protected renderSemicircle(width: number, height: number, strokeColor: string, strokeWidth: number, filled: boolean): VNode {
+        const d = [`M 0 0`, `L ${width} 0`, `A ${width / 2} ${height} 0 0 1 0 0`, `Z`].join(' ');
 
-        return (
-            <path
-            d={d}
-            fill={filled ? strokeColor : 'white'}
-            stroke={strokeColor}
-            stroke-width={strokeWidth}
-            />
-        );
+        return <path d={d} fill={filled ? strokeColor : 'white'} stroke={strokeColor} stroke-width={strokeWidth} />;
     }
 }

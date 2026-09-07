@@ -1,18 +1,17 @@
-import {
-    AbstractUIExtension,
-    EditorContextService,
-    IActionDispatcher,
-    IDiagramStartup,
-    TYPES
-} from '@eclipse-glsp/client';
+import { AbstractUIExtension, EditorContextService, IActionDispatcher, IDiagramStartup, TYPES } from '@eclipse-glsp/client';
 import { injectable, inject } from 'inversify';
-// TODO maybe merge all actions into one file / folder ? 
+// TODO maybe merge all actions into one file / folder ?
 import { ExitAction } from './client-exit-action';
 import { SaveAction } from './client-save-action';
 
+/**
+ * Toolbar that contains the save and exit actions.
+ *
+ * The actions are forwarded to the server, which writes the corresponding signal
+ * to its standard output, where it triggers the corresponding server action.
+ */
 @injectable()
 export class SessionManagementPanel extends AbstractUIExtension implements IDiagramStartup {
-
     static readonly ID = 'session-management-panel';
 
     @inject(TYPES.IActionDispatcher)
@@ -30,13 +29,17 @@ export class SessionManagementPanel extends AbstractUIExtension implements IDiag
     }
 
     protected initializeContents(containerElement: HTMLElement): void {
-        containerElement.appendChild(this.createButton('btn-save', 'Save', () => {
-            this.actionDispatcher.dispatch(SaveAction.create());
-        }));
+        containerElement.appendChild(
+            this.createButton('btn-save', 'Save', () => {
+                this.actionDispatcher.dispatch(SaveAction.create());
+            })
+        );
 
-        containerElement.appendChild(this.createButton('btn-exit', 'Exit', () => {
-            this.actionDispatcher.dispatch(ExitAction.create());
-        }));
+        containerElement.appendChild(
+            this.createButton('btn-exit', 'Exit', () => {
+                this.actionDispatcher.dispatch(ExitAction.create());
+            })
+        );
     }
 
     protected createButton(id: string, label: string, onClick: () => void): HTMLElement {
@@ -48,7 +51,9 @@ export class SessionManagementPanel extends AbstractUIExtension implements IDiag
         return button;
     }
 
-    /** Show the panel once the initial model has been loaded. */
+    /*
+     * Shows the panel once the initial model has been loaded.
+     */
     postModelInitialization(): void {
         this.show(this.editorContext.modelRoot);
     }
